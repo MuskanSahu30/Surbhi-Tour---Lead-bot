@@ -383,9 +383,6 @@
   <div class="hero-arrow">↓</div>
 </div>
 
-<div class="demo-banner">
-  <strong>Live Demo</strong> — Chat below to book your ride. This is exactly how customers would book.
-</div>
 
 <div class="chat-wrapper">
   <div class="chat-header">
@@ -405,14 +402,14 @@
 <div class="footer">
   <p>Surbhi Tour — Reliable Travel, Anywhere in India<br>
   <a href="https://surbhitour.in" target="_blank" rel="noopener">surbhitour.in</a> · <a href="https://instagram.com/surbhitour" target="_blank" rel="noopener">@surbhitour</a></p>
-  <div class="powered">Powered by BizwithAI — AI & Digital Solutions</div>
+
 </div>
 
 <script>
 (function() {
   var BUSINESS_NAME = "Surbhi Tour";
   var OWNER_PHONE = "919509393566";
-  var GOOGLE_SHEET_URL = "";  // Paste Apps Script URL here to auto-save leads
+  var GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwDCoJlWoFrcqfSwhAfojF8qXywRAuFhdhrJe7uq8boWxDm7pGIrhD38J1U8BMU4rU6uA/exec";
 
   var chatBody = document.getElementById('chatBody');
   var inputArea = document.getElementById('inputArea');
@@ -534,21 +531,42 @@
     if (!GOOGLE_SHEET_URL) return;
     var labels = { hot: 'Hot', warm: 'Warm', new: 'New' };
     try {
-      fetch(GOOGLE_SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: lead.name,
-          phone: lead.phone,
-          service: lead.service,
-          from: lead.from,
-          to: lead.to,
-          date: lead.date,
-          passengers: lead.passengers,
-          leadScore: labels[cls]
-        })
-      });
+      var iframe = document.createElement('iframe');
+      iframe.name = 'leadbot-submit';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = GOOGLE_SHEET_URL;
+      form.target = 'leadbot-submit';
+
+      var fields = {
+        name: lead.name || '',
+        phone: lead.phone || '',
+        service: lead.service || '',
+        from: lead.from || '',
+        to: lead.to || '',
+        date: lead.date || '',
+        passengers: lead.passengers || '',
+        leadScore: labels[cls] || 'New'
+      };
+
+      for (var key in fields) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = fields[key];
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+
+      setTimeout(function() {
+        form.remove();
+        iframe.remove();
+      }, 5000);
     } catch(e) {}
   }
 
